@@ -1,6 +1,6 @@
 package Lingua::JA::Fold;
 
-our $VERSION = '0.00_04'; # 2003-03-28
+our $VERSION = '0.00_05'; # 2003-03-30
 
 use 5.008;
 use strict;
@@ -102,7 +102,7 @@ my ($string) = shift;
 	my $letters = length($string);
 	my $half_kana = '｡｢｣､･ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝﾞﾟ';
 	$half_kana = decode('utf8', $half_kana);
-	my $kana = $string =~ s/[$half_kana]//g;
+	my $kana  = $string =~ tr/$half_kana//d;
 	my $ascii = $string =~ tr/\x20-\x7E//;
 	return $letters * 2 - ($ascii + $kana);
 }
@@ -113,7 +113,7 @@ my ($string) = shift;
 	my $letters = length($string);
 	my $half_kana = '｡｢｣､･ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝﾞﾟ';
 	$half_kana = decode('utf8', $half_kana);
-	my $kana = $string =~ s/[$half_kana]//g;
+	my $kana  = $string =~ tr/$half_kana//d;
 	my $ascii = $string =~ tr/\x20-\x7E//;
 	return $letters - 0.5 * ($ascii + $kana);
 }
