@@ -1,6 +1,6 @@
 package Lingua::JA::Fold;
 
-our $VERSION = '0.00_03'; # 2003-03-28
+our $VERSION = '0.00_04'; # 2003-03-28
 
 use 5.008;
 use strict;
@@ -39,7 +39,9 @@ sub fold {
 			}
 		}
 		my $folded = join("\n", @folded);
-		$line = "$folded\n$line";
+		if ($folded) {
+			$line = "$folded\n$line";
+		}
 	}
 	return $self;
 }
@@ -80,7 +82,9 @@ sub fold_mixed {
 			}
 		}
 		my $folded = join("\n", @folded);
-		$line = "$folded\n$line";
+		if ($folded) {
+			$line = "$folded\n$line";
+		}
 	}
 	return $self;
 }
