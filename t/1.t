@@ -1,6 +1,3 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl 1.t'
-
 # this code is written in Unicode/UTF-8 char-set
 # including Japanese characters.
 
@@ -8,7 +5,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 9;
+use Test::More tests => 13;
 
 BEGIN {
 	use_ok(
@@ -55,7 +52,106 @@ is ($got, 21,
 	'length_half(): for ascii + kanji + half_width_kana');
 
 ########################################################################
-# 6. fold a text under 2 full width letters par a line. (full-width)
+# 6. fold() (line-split: single line; end with newline)
+
+$text = <<'EOF';
+あいうえおかきくけこ
+EOF
+
+$expected = <<'EOF';
+あいうえお
+かきくけこ
+EOF
+
+$got = fold(
+	'text' => $text,
+	'length' => 5,
+	'mode' => 'traditional',
+);
+
+is ($got, $expected,
+	'fold(): line-split: single line; end with newline');
+
+########################################################################
+# 7. fold() (line-split: single line; end without newline)
+
+chomp($text = <<'EOF');
+あいうえおかきくけこ
+EOF
+
+chomp($expected = <<'EOF');
+あいうえお
+かきくけこ
+EOF
+
+$got = fold(
+	'text' => $text,
+	'length' => 5,
+	'mode' => 'traditional',
+);
+
+is ($got, $expected,
+	'fold(): line-split: single line; end without newline');
+
+########################################################################
+# 8. fold() (line-split: multi line; end with newline)
+
+$text = <<'EOF';
+あいうえおかきくけこ
+さしすせそたちつてと
+なにぬねのはひふへほ
+EOF
+
+$expected = <<'EOF';
+あいうえお
+かきくけこ
+さしすせそ
+たちつてと
+なにぬねの
+はひふへほ
+EOF
+
+$got = fold(
+	'text' => $text,
+	'length' => 5,
+	'mode' => 'traditional',
+);
+
+is ($got, $expected,
+	'fold(): line-split: multi line; end with newline');
+
+
+########################################################################
+# 9. fold() (line-split: multi line; end without newline)
+
+chomp($text = <<'EOF');
+あいうえおかきくけこ
+さしすせそたちつてと
+なにぬねのはひふへほ
+EOF
+
+chomp($expected = <<'EOF');
+あいうえお
+かきくけこ
+さしすせそ
+たちつてと
+なにぬねの
+はひふへほ
+EOF
+
+$got = fold(
+	'text' => $text,
+	'length' => 5,
+	'mode' => 'traditional',
+);
+
+is ($got, $expected,
+	'fold(): line-split: multi line; end without newline');
+
+########################################################################
+# 10. fold a text under 2 full width letters par a line. (full-width)
+
+$text = 'abcdeかんじ漢字ｱｲｳｴｵ｡';
 
 $got = fold(
 	'text' => $text,
@@ -74,7 +170,7 @@ is ($got, $expected,
 	'fold(): full-width; for a short text');
 
 ########################################################################
-# 7. long text trial (full-width)
+# 11. long text trial (full-width)
 
 $text = <<'EOF';
 
@@ -150,7 +246,7 @@ is ($got, $expected,
 	'fold(): full-width; for a long  text');
 
 ########################################################################
-# 8. long text trial (ignore difference whether full or half)
+# 12. long text trial (ignore difference whether full or half)
 
 $expected = <<'EOF';
 
@@ -211,7 +307,7 @@ is ($got, $expected,
 	'fold(): ignore difference whether full or half');
 
 ########################################################################
-# 9. fold() (full-width; traditional manner)
+# 13. fold() (full-width; traditional manner)
 
 $text = <<'EOF';
 (４)符号　記号ともいう。句読点をはじめ、表記上の符号には、すべて一マスをあてる。感嘆符！疑問符？カギ「」カッコ（）ヤマ型カッコ〈〉など。注意すべきことは、文の中止、あるいは終止が行末にきたときは、次の行頭に打たず、行末の文字と一緒に書きこむということである。閉じる符号――）」』など――も同様に扱う。つまり、テン「、」まる「。」や閉じる符号は、行頭には据えないということである。その他、行頭に据えないものとして、くりかえし記号（々ゝ）などがある。「！？」は、行頭に書いて差しつかえない。ただ、「！？」の下は、すぐ下にカギの受けがくるとき以外は、一マスあけることになっている。句読点の下を一マスあけた原稿をよくみかけるが、これはあけない。

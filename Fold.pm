@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.06'; # 2004-01-02 (since 2003-03-26)
+our $VERSION = '0.07'; # 2004-01-04 (since 2003-03-26)
 
 use Exporter;
 our @ISA = qw(Exporter);
@@ -86,15 +86,18 @@ sub fold {
 	
 	# split a text to lines
 	my @line;
-	if ($param{'text'} =~ m/\n/) {
-		while ($param{'text'}) {
-			$param{'text'} =~ s/^.*?\n//;
-			my $line = $&;
-			push @line, $line;
+	while ($param{'text'}) {
+		if ($param{'text'} !~ m/\n/) {
+			# single line; end without newline
+			push @line, $param{'text'};
+			last;
 		}
-	}
-	else {
-		push @line, $param{'text'};
+		else {
+			# single line; end with newline
+			# multi line; end with/without newline
+			$param{'text'} =~ s/^[^\n]*?\n//s;
+			push @line, $&;
+		}
 	}
 	
 	# folding mode junction
