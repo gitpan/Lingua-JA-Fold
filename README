@@ -18,6 +18,7 @@ DEPENDENCIES
  And,
  this module requires these other modules and libraries:
 
+   Exporter
    Encode
 
 COPYRIGHT AND LICENCE
