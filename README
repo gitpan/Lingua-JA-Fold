@@ -1,0 +1,28 @@
+Lingua/JA/Fold version 0.00
+===========================
+
+ This module is used for Japanese text wrapping and so on.
+
+INSTALLATION
+
+ To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+ This module requires perl5.8 or later.
+
+ This module requires these other modules and libraries:
+
+   Encode
+
+COPYRIGHT AND LICENCE
+
+ Copyright (c) 2003 Masanori HATA. All rights reserved.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the same terms as Perl itself.
