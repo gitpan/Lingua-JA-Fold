@@ -1,6 +1,6 @@
 package Lingua::JA::Fold;
 
-our $VERSION = '0.00_01'; # 2003-03-27
+our $VERSION = '0.00_02'; # 2003-03-28
 
 use 5.008;
 use strict;
@@ -9,21 +9,39 @@ use Carp;
 
 use Encode;
 
+sub new {
+	my $class = shift;
+	my $self = {};
+	bless $self, $class;
+	my $string = shift;
+	@{ $$self{'line'} } = split(/\n/, $string);
+	return $self;
+}
+
+sub output {
+	my $self = shift;
+	my $string = join( "\n", @{ $$self{'line'} } );
+	return $string;
+}
+
 sub fold_full {
-	my($length, $string) = @_;
-	my @folded;
-	while ($string) {
-		if (length_full($string) > $length) {
-			my $newfold;
-			($newfold, $string) = _cut_full($length, $string);
-			push(@folded, $newfold);
+	my($self, $length) = @_;
+	foreach my $line ( @{ $$self{'line'} } ) {
+		my @folded;
+		while ($line) {
+			if (length_full($line) > $length) {
+				my $newfold;
+				($newfold, $line) = _cut_full($length, $line);
+				push(@folded, $newfold);
+			}
+			else {
+				last;
+			}
 		}
-		else {
-			last;
-		}
+		my $folded = join("\n", @folded);
+		$line = "$folded\n$line";
 	}
-	my $folded = join("\n", @folded);
-	return "$folded\n$string";
+	return $self;
 }
 sub _cut_full {
 	my($length, $string) = @_;
@@ -48,20 +66,23 @@ sub _cut_full {
 }
 
 sub fold_mixed {
-	my($length, $string) = @_;
-	my @folded;
-	while ($string) {
-		if (length($string) > $length) {
-			my $newfold;
-			($newfold, $string) = _cut_mixed($length, $string);
-			push(@folded, $newfold);
+	my($self, $length) = @_;
+	foreach my $line ( @{ $$self{'line'} } ) {
+		my @folded;
+		while ($line) {
+			if (length($line) > $length) {
+				my $newfold;
+				($newfold, $line) = _cut_mixed($length, $line);
+				push(@folded, $newfold);
+			}
+			else {
+				last;
+			}
 		}
-		else {
-			last;
-		}
+		my $folded = join("\n", @folded);
+		$line = "$folded\n$line";
 	}
-	my $folded = join("\n", @folded);
-	return "$folded\n$string";
+	return $self;
 }
 sub _cut_mixed {
 	my($length, $string) = @_;
@@ -97,18 +118,22 @@ my ($string) = shift;
 
 ########################################################################
 sub tab2space { # replace all [TAB]s with some [SPACE]s.
-	my($tab, $string) = @_;
+	my($self, $tab) = @_;
 	my $spaces = ' ';
 	$spaces x= $tab;
-	$string =~ s/\t/$spaces/eg;
-	return $string;
+	foreach my $line ( @{ $$self{'line'} } ) {
+		$line =~ s/\t/$spaces/eg;
+	}
+	return $self;
 }
 ########################################################################
 sub kana_half2full {
-	my $string = shift;
-	$string = encode('iso-2022-jp', $string);
-	$string = decode('iso-2022-jp', $string);
-	return $string;
+	my $self = shift;
+	foreach my $line ( @{ $$self{'line'} } ) {
+		$line = encode('iso-2022-jp', $line);
+		$line = decode('iso-2022-jp', $line);
+	}
+	return $self;
 }
 ########################################################################
 1;
@@ -124,17 +149,18 @@ Lingua::JA::Fold - fold Japanese text
  use Encode;
  
  my $text = decode('utf8', 'ｱｲｳｴｵ	漢字');
+ my $obj = Lingua::JA::Fold->new($text);
  
  # replace a [TAB] with 4 of [SPACE]s.
- $text = Lingua::JA::Fold::tab2space(4, $text);
+ $obj->tab2space(4);
  # convert half pitch 'Kana' letters to full pitch ones.
- $text = Lingua::JA::Fold::kana_half2full($text);
+ $obj->kana_half2full;
  
  # fold the text under 2 full pitch letters par a line.
- $text = Lingua::JA::Fold::fold_full(2, $text);
+ $obj->fold_full(2);
  
  # result
- print encode('utf8', $text);
+ print encode('utf8', $obj->output);
 
 =head1 DESCRIPTION
 
@@ -148,17 +174,25 @@ Thus manner makes text wrapping rather complicate thing.
 
 =over
 
-=item fold_full($length, $string)
+=item new($string)
 
-This method returns folded string within the specified length in full pitch.
+This is the constructor method of the module.
 
-=item tab2space($space, $string)
+=item output
 
-This method converts [TAB] with some [SPACE]s of $space in the $string. Then returns $string.
+Output the string.
 
-=item kana_half2full($string)
+=item fold_full($i)
 
-This method converts half pitch 'Kana's to full pitch ones in the $string. Then returns $string.
+Fold the string within the specified length of $i in full pitch.
+
+=item tab2space($i)
+
+Replace [TAB] with some [SPACE]s of $i in the string.
+
+=item kana_half2full
+
+Converts from half pitch 'Kana's to full pitch ones in the string.
 
 =back
 
@@ -172,7 +206,7 @@ This method converts half pitch 'Kana's to full pitch ones in the $string. Then 
 
 =head1 NOTES
 
-This module runs under Unicode/UTF-8 environment (then Perl5.8 or later is required), you should input data in UTF-8 character encoding.
+This module runs under Unicode/UTF-8 environment (hence Perl5.8 or later is required), you should input data in UTF-8 character encoding.
 
 =head1 AUTHOR
 
