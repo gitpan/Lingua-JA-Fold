@@ -5,39 +5,43 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.05'; # 2004-01-01 (since 2003-03-26)
+our $VERSION = '0.06'; # 2004-01-02 (since 2003-03-26)
 
-use Encode;
-# use Carp;
-
-require Exporter;
+use Exporter;
 our @ISA = qw(Exporter);
+our @EXPORT = qw(
+	fold
+);
 our @EXPORT_OK = qw(
 	length_full length_half
+	tab2space kana_half2full
 );
+
+use Encode;
+use Carp;
 
 =head1 NAME
 
-Lingua::JA::Fold - fold Japanese text, and more...
+Lingua::JA::Fold - fold a Japanese text.
 
 =head1 SYNOPSIS
 
  use utf8;
- use Lingua::JA::Fold;
+ use Lingua::JA::Fold qw(fold tab2space kana_half2full);
  
  my $text = 'ｱｲｳｴｵ	漢字';
- my $obj = Lingua::JA::Fold->new($text);
  
  # replace a [TAB] with 4 of [SPACE]s.
- $obj->tab2space(4);
- # convert half-width 'Kana' characters to full-width ones.
- $obj->kana_half2full;
+ $text = tab2space('text' => $text, 'space' => 4);
+ # convert a half-width 'Kana' character to a full-width one.
+ $text = kana_half2full($text);
  
  # fold the text under 2 full-width characters par a line.
- $obj->fold(2);
+ $text = fold('text' => $text, 'length' => 2);
  
  # output the result
- print $obj->output;
+ utf8::encode($text);
+ print $text;
 
 =head1 DESCRIPTION
 
@@ -45,65 +49,78 @@ This module is used for Japanese text wrapping and so on.
 
 The Japanese (the Chinese and the Korean would be the same) text has traditionally unique manner in representing. Basically those characters are used to be represented in two kind of size which is 'full-width' or 'half-width'. The width and the height of full-width characters are the same size (regular square). At the point, it is different from the alphabet characters which have normally variable (slim) width in representing. Roughly say, we call the width of alphabet characters and Arabic numbers as a half, and do the width of other characters as a full. In a Japanese text which is mixed with alphabet and Arabic numbers, a character has a width, it would be full or half.
 
-For such reasons, to wrapping Japanese text is rather complicate thing.
+For such reasons, to wrap Japanese text is rather complicate thing.
 
-=head1 METHODS and FUNCTIONS
+=head1 FUNCTIONS
 
 =over
 
-=item new($string)
+=item fold('text' => $text, 'length' => $i [, 'mode' => $mode])
 
-The constructor class method.
+Function. Fold a string within the specified length of $i.
 
-=cut
+The way in which to calculate length is differs by a mode.
 
-sub new {
-	my $class = shift;
-	my $self = {};
-	bless $self, $class;
-	utf8::decode( my $string = shift );
-	
-	$string =~ s/\x0D\x0A|\x0D|\x0A/\n/g;
-	if ($string =~ m/\n/) {
-		while ($string) {
-			$string =~ s/^(.*?\n)(.*)$/$2/s;
-			my $line = $1;
-			push @{ $$self{'line'} }, $line;
-		}
-	}
-	else {
-		push @{ $$self{'line'} }, $string;
-	}
-	
-	return $self;
-}
-
-=item output
-
-This class method outputs the string (as Unicode Wide Character).
-
-=cut
-
-sub output {
-	my $self = shift;
-	my $string = join '', @{ $$self{'line'} };
-	return $string;
-}
-
-=item fold($i)
-
-This object method folds up the string within the specified length of $i calculated as full-width characters.
+ 'full-width' : culculate for a full-width character.
+ 'traditional': culculate for a full-width character; reflects the traditional manner of composition.
+ (not given)  : igore the size difference between a full and a half.
 
 =cut
 
 sub fold {
-	my($self, $length) = @_;
-	foreach my $line ( @{ $$self{'line'} } ) {
+	my %param = @_;
+	
+	# check parameters
+	unless ($param{'text'}) {
+		return undef;
+	}
+	if (not $param{'length'} or $param{'length'} =~ m/\D/) {
+		croak "length must be given as an integer value of more than 1";
+	}
+	
+	# UTF-8 flag on
+	utf8::decode( $param{'text'} );
+	
+	# newline character unification
+	$param{'text'} =~ s/\x0D\x0A|\x0D|\x0A/\n/g;
+	
+	# split a text to lines
+	my @line;
+	if ($param{'text'} =~ m/\n/) {
+		while ($param{'text'}) {
+			$param{'text'} =~ s/^.*?\n//;
+			my $line = $&;
+			push @line, $line;
+		}
+	}
+	else {
+		push @line, $param{'text'};
+	}
+	
+	# folding mode junction
+	if (not $param{'mode'}) {
+		&fold_1($param{'length'}, \@line);
+	}
+	elsif ($param{'mode'} eq 'full-width') {
+		&fold_2($param{'length'}, \@line);
+	}
+	elsif ($param{'mode'} eq 'traditional') {
+		&fold_3($param{'length'}, \@line);
+	}
+	
+	return join '', @line;
+}
+
+sub fold_1 {
+	my($length, $ref) = @_;
+	
+	# fold each lines
+	foreach my $line ( @{$ref} ) {
 		my @folded;
 		while ($line) {
-			if (length_full($line) > $length) {
+			if (length($line) > $length) {
 				my $newfold;
-				($newfold, $line) = _cut($length, $line);
+				($newfold, $line) = cutter_1($length, $line);
 				push(@folded, $newfold);
 			}
 			else {
@@ -115,10 +132,41 @@ sub fold {
 			$line = "$folded\n$line";
 		}
 	}
-	return $self;
+	
+	return 1;
+}
+sub cutter_1 {
+	my($length, $string) = @_;
+	my $folded = substr($string, 0, $length);
+	my $unfold = substr($string, $length);
+	return $folded, $unfold;
 }
 
-sub _cut {
+sub fold_2 {
+	my($length, $ref) = @_;
+	
+	# fold each lines
+	foreach my $line ( @{$ref} ) {
+		my @folded;
+		while ($line) {
+			if (length_full($line) > $length) {
+				my $newfold;
+				($newfold, $line) = cutter_2($length, $line);
+				push(@folded, $newfold);
+			}
+			else {
+				last;
+			}
+		}
+		my $folded = join("\n", @folded);
+		if ($folded) {
+			$line = "$folded\n$line";
+		}
+	}
+	
+	return 1;
+}
+sub cutter_2 {
 	my($length, $string) = @_;
 	my $chars = $length;
 	my $folded = substr($string, 0, $chars);
@@ -140,11 +188,9 @@ sub _cut {
 	return $folded, $unfold;
 }
 
-=item fold_ex($i)
+=item The Japanese Traditional Manner of Composition
 
-This object method folds up the string within the specified length of $i calculated as full-width characters. In addition to that, this method estimates the forbidden rule for the specific marks. It is said that this method is rather formal than the fold() as the Japanese text.
-
-The forbidden rule is: 1) the termination marks like Ten "," and Maru ".", 2) closing marks -- brace or parenthesis or bracket -- like ")", "}", "]", ">" and etc., 3) repeat marks, those should not be at the top of a line. If it would be occured, these marks should be moved to the place at the end of the previous line.
+This formal manner is another saying as the forbidden rule. The rule is: 1) a termination mark like Ten "," and Maru ".", 2) a closing mark -- brace or parenthesis or bracket -- like ")", "}", "]", ">" and etc., 3) a repeat mark, those should not be placed at the top of a line. If it would be occured, such mark should be moved to the next to the bottom of the previous line.
 
 Actually by this module what is detect as a forbidden mark are listed next:
 
@@ -157,15 +203,16 @@ Note that these marks are all full-width Japanese characters.
 my $Forbidden = '’”、。〃々〉》」』】〕〟ゝゞヽヾ），．］｝';
 # my $Forbidden = '\x{2019}\x{201D}\x{3001}-\x{3003}\x{3005}\x{3009}\x{300B}\x{300D}\x{300F}\x{3011}\x{3015}\x{301F}\x{309D}\x{309E}\x{30FD}\x{30FE}\x{FF09}\x{FF0C}\x{FF0E}\x{FF3D}\x{FF5D}';
 
-sub fold_ex {
-	my($self, $length) = @_;
+sub fold_3 {
+	my($length, $ref) = @_;
 	
-	foreach my $line ( @{ $$self{'line'} } ) {
+	# fold each lines
+	foreach my $line ( @{$ref} ) {
 		my @folded;
 		while ($line) {
 			if (length_full($line) > $length) {
 				my $newfold;
-				($newfold, $line) = _cut_ex($length, $line);
+				($newfold, $line) = cutter_3($length, $line);
 				push(@folded, $newfold);
 			}
 			else {
@@ -188,10 +235,9 @@ sub fold_ex {
 		}
 	}
 	
-	return $self;
+	return 1;
 }
-
-sub _cut_ex {
+sub cutter_3 {
 	my($length, $string) = @_;
 	
 	my $chars = $length;
@@ -227,44 +273,9 @@ sub _cut_ex {
 	return $folded, $unfold;
 }
 
-=item fold_easy($i)
-
-This object method folds the string just as is within the specified length of $i. The difference between full-width and half-width will be ignored. Easy to implementing :)
-
-=cut
-
-sub fold_easy {
-	my($self, $length) = @_;
-	foreach my $line ( @{ $$self{'line'} } ) {
-		my @folded;
-		while ($line) {
-			if (length($line) > $length) {
-				my $newfold;
-				($newfold, $line) = _cut_mixed($length, $line);
-				push(@folded, $newfold);
-			}
-			else {
-				last;
-			}
-		}
-		my $folded = join("\n", @folded);
-		if ($folded) {
-			$line = "$folded\n$line";
-		}
-	}
-	return $self;
-}
-
-sub _cut_mixed {
-	my($length, $string) = @_;
-	my $folded = substr($string, 0, $length);
-	my $unfold = substr($string, $length);
-	return $folded, $unfold;
-}
-
 =item length_half($text)
 
-This exportable function is for counting length of the $text as half-width characters. 
+Function. Exportable. This is for counting the length of a text for a half-width character. 
 
 =cut
 
@@ -286,7 +297,7 @@ sub length_half ($) {
 
 =item length_full($text)
 
-This exportable function is for counting length of the $text as full-width characters. 
+Function. Exportable. This is for counting the length of a text for a full-width character. 
 
 =cut
 
@@ -308,35 +319,45 @@ sub length_full ($) {
 
 # sub _length_full_fixed {}
 
-=item tab2space($i)
+=item tab2space('text' => $text, 'space' => $i)
 
-This object method replaces a [TAB] character with $i of [SPACE]s of the string.
+Function. Exportable. Replace a [TAB] character in a text with given number of [SPACE]s.
 
 =cut
 
-sub tab2space { # replace all [TAB]s with some [SPACE]s.
-	my($self, $tab) = @_;
-	my $spaces = ' ';
-	$spaces x= $tab;
-	foreach my $line ( @{ $$self{'line'} } ) {
-		$line =~ s/\t/$spaces/eg;
+sub tab2space {
+	my %param = @_;
+	
+	# check parameters
+	unless ($param{'text'}) {
+		return undef;
 	}
-	return $self;
+	if (not $param{'space'} or $param{'space'} =~ m/\D/) {
+		croak "space must be given as an integer value of more than 1";
+	}
+	
+	my $spaces = ' ';
+	$spaces x= $param{'space'};
+	
+	# replacement
+	$param{'text'} =~ s/\t/$spaces/g;
+	
+	return $param{'text'};
 }
 
-=item kana_half2full
+=item kana_half2full($text)
 
-This object method converts from half-width 'Kana's to full-width ones of the string.
+Function. Exportable. Convert a character in a text from half-width 'Kana' to full-width one.
 
 =cut
 
 sub kana_half2full {
-	my $self = shift;
-	foreach my $line ( @{ $$self{'line'} } ) {
-		$line = encode('iso-2022-jp', $line);
-		$line = decode('iso-2022-jp', $line);
-	}
-	return $self;
+	my $text = shift;
+	
+	$text = encode('iso-2022-jp', $text);
+	$text = decode('iso-2022-jp', $text);
+	
+	return $text;
 }
 
 ########################################################################
@@ -355,9 +376,9 @@ __END__
 
 =back
 
-=head1 NOTES
+=head1 NOTE
 
-This module runs under Unicode/UTF-8 environment (hence Perl5.8 or later is required), you should input octets with UTF-8 charset. Please C<use utf8;> pragma to enable to detect strings as UTF-8 in your source code.
+This module runs under Unicode/UTF-8 environment (hence Perl5.8 or later is required), you should input text as a UTF-8 flaged string. Specify the C<use utf8;> pragma in your source code and use utf8::decode() method to UTF-8 flag on a string.
 
 =head1 AUTHOR
 

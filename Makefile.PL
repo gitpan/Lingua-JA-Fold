@@ -7,9 +7,10 @@ WriteMakefile(
 	'PREREQ_PM'    => {
 		'Exporter' => '5.567',
 		'Encode'   => '1.98',
+		'Carp'     => '1.01',
 	},
 	($] >= 5.005 ? (
-		'ABSTRACT' => 'fold Japanese text, and more...',
+		'ABSTRACT' => 'fold a Japanese text.',
 		'AUTHOR'   => 'Masanori HATA <lovewing@dream.big.or.jp>',
 	) : ()),
 );

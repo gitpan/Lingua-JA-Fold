@@ -1,7 +1,7 @@
-Lingua/JA/Fold version 0.05
+Lingua/JA/Fold version 0.06
 ===========================
 
- This module is used for Japanese text wrapping and so on.
+ This module is used for Japanese text wrapping.
 
 INSTALLATION
 
@@ -20,6 +20,7 @@ DEPENDENCIES
 
    Exporter
    Encode
+   Carp
 
 COPYRIGHT AND LICENCE
 

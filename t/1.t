@@ -8,74 +8,91 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 10;
+use Test::More tests => 9;
 
 BEGIN {
-	use_ok( 'Lingua::JA::Fold', qw(length_full length_half) )
+	use_ok(
+		'Lingua::JA::Fold',
+		qw(fold length_full length_half tab2space kana_half2full)
+	)
 };
 
+########################################################################
+# 2. replace a [TAB] with 4 of [SPACE]s.
+
 my $text = 'かんじ	漢字';
-my $obj = Lingua::JA::Fold->new($text);
-isa_ok($obj, 'Lingua::JA::Fold');
-
-########################################################################
-# 3. replace a [TAB] with 4 of [SPACE]s.
-$obj->tab2space(4);
-my $got = $obj->output;
+my $got = tab2space('text' => $text, 'space' => 4);
 my $expected = 'かんじ    漢字';
+
 is ($got, $expected,
-	'method tab2space($i)');
+	'tab2space()');
 
 ########################################################################
-# 4. convert half width 'Kana' letters to full width ones.
+# 3. convert a half-width 'Kana' letter to a full-width one.
+
 $text = 'ｱｲｳｴｵ';
-my $obj2 = Lingua::JA::Fold->new($text);
-$obj2->kana_half2full;
-$got = $obj2->output;
+$got = kana_half2full($text);
 $expected = 'アイウエオ';
+
 is ($got, $expected,
-	'method kana_half2full');
+	'kana_half2full()');
 
 ########################################################################
-# 5. count length in full-width
+# 4. count length for full-width
+
 $text = 'abcdeかんじ漢字ｱｲｳｴｵ｡';
 $got = length_full($text);
+
 is ($got, 10.5,
-	'func. length_full($text): for ascii + kanji + half_width_kana');
+	'length_full(): for ascii + kanji + half_width_kana');
 
 ########################################################################
-# 6. count length in half-width
+# 5. count length for half-width
+
 $got = length_half($text);
+
 is ($got, 21,
-	'func. length_half($text): for ascii + kanji + half_width_kana');
+	'length_half(): for ascii + kanji + half_width_kana');
 
 ########################################################################
-# 7. fold the text under 2 full width letters par a line.
-my $obj3 = Lingua::JA::Fold->new($text);
-$obj3->fold(2);
-$got = $obj3->output;
+# 6. fold a text under 2 full width letters par a line. (full-width)
+
+$got = fold(
+	'text' => $text,
+	'length' => 2,
+	'mode' => 'full-width',
+);
+
 $expected = 'abcd
 eか
 んじ
 漢字
 ｱｲｳｴ
 ｵ｡';
+
 is ($got, $expected,
-	'method fold($i): for a short text');
+	'fold(): full-width; for a short text');
 
 ########################################################################
-# 8. long text trial
+# 7. long text trial (full-width)
 
 $text = <<'EOF';
+
 apougaobuaEmailアドレスｱｲｳｴｵ｡も必須です（こちらから返事をする際に必要となりますので、アドレスの記入ミスをなさらぬようご注意下さい）。改行は、原則として段落を変えたい時のみ使用するgaoubaようにしてください。
 aaaa手a動で行を折り返して長さを揃える必要はありません。 作成中に誤って消してしまった場合はショックが大きいものです。特ｶｷｸｹｺに長文の場合などは、一旦、テキストエディタやワープロ等で原稿を作成してから、それをメールの書き込み欄にコピー＆ペーストして送信するやり方にすれば安aaa全です。
+
 ※短い行※
+
+
  Emailアドレスも必須です（こちらから返事をoubabaする際に必要となりますので、アドレスの記入ミスをなさらぬようご注意下さい）。改行は、原則として段落を変えたい時のみ使用するようにしてください。aaaa手a動で行を折り返して長さを揃える必要はありません。作成中に誤って消してしまった場合はショックが大きいもagaのです。
 特にagabb長文の場合などは、一旦、テキストエディタやワープロ等で原稿を作成してから、それをメールの書き込み欄にコピー＆ペーストして送信するやり方にすれば安全です。Emailアドレスも必須です（こちらかｱｲｳｴｵ｡ら返事をする際に必要となりますので、アドレスの記入ミスをなさらぬようご注意下さい）。 改行は、原則として段落を変えたい時のみ使用するようにしてください。aaaa手a動で行を折り返して長さを揃える必要はありません。 
 作成中に誤って消してしまった場合はショックが大きいものです。特に長文の場合などは、一旦、テキストエディタやワープロ等で原稿を作成してから、それをメールの書き込み欄にコピー＆ペーストして送信するやり方にすれば安全です。
+
+
 EOF
 
 $expected = <<'EOF';
+
 apougaobuaEmailアドレスｱｲｳｴｵ｡も必須です
 （こちらから返事をする際に必要となります
 ので、アドレスの記入ミスをなさらぬようご
@@ -90,7 +107,10 @@ aaaa手a動で行を折り返して長さを揃える必
 、それをメールの書き込み欄にコピー＆ペー
 ストして送信するやり方にすれば安aaa全で
 す。
+
 ※短い行※
+
+
  Emailアドレスも必須です（こちらから返事
 をoubabaする際に必要となりますので、アド
 レスの記入ミスをなさらぬようご注意下さい
@@ -116,18 +136,24 @@ a動で行を折り返して長さを揃える必要はあ
 稿を作成してから、それをメールの書き込み
 欄にコピー＆ペーストして送信するやり方に
 すれば安全です。
+
+
 EOF
 
-my $obj4 = Lingua::JA::Fold->new($text);
-$obj4->fold(20);
-$got = $obj4->output;
+$got = fold(
+	'text' => $text,
+	'length' => 20,
+	'mode' => 'full-width',
+);
+
 is ($got, $expected,
-	'method fold($i): for a long text');
+	'fold(): full-width; for a long  text');
 
 ########################################################################
-# 9. long text trial (alternative)
+# 8. long text trial (ignore difference whether full or half)
 
 $expected = <<'EOF';
+
 apougaobuaEmailアドレスｱ
 ｲｳｴｵ｡も必須です（こちらから返事をす
 る際に必要となりますので、アドレスの記入
@@ -142,7 +168,10 @@ aaaa手a動で行を折り返して長さを揃え
 してから、それをメールの書き込み欄にコピ
 ー＆ペーストして送信するやり方にすれば安
 aaa全です。
+
 ※短い行※
+
+
  Emailアドレスも必須です（こちらか
 ら返事をoubabaする際に必要となりま
 すので、アドレスの記入ミスをなさらぬよう
@@ -169,16 +198,20 @@ aaa全です。
 稿を作成してから、それをメールの書き込み
 欄にコピー＆ペーストして送信するやり方に
 すれば安全です。
+
+
 EOF
 
-my $obj5 = Lingua::JA::Fold->new($text);
-$obj5->fold_easy(20);
-$got = $obj5->output;
+$got = fold(
+	'text' => $text,
+	'length' => 20,
+);
+
 is ($got, $expected,
-	'method fold_easy(i): ignore difference whether full or half');
+	'fold(): ignore difference whether full or half');
 
 ########################################################################
-# 10. fold_ex($i) (reflect forbidden rules)
+# 9. fold() (full-width; traditional manner)
 
 $text = <<'EOF';
 (４)符号　記号ともいう。句読点をはじめ、表記上の符号には、すべて一マスをあてる。感嘆符！疑問符？カギ「」カッコ（）ヤマ型カッコ〈〉など。注意すべきことは、文の中止、あるいは終止が行末にきたときは、次の行頭に打たず、行末の文字と一緒に書きこむということである。閉じる符号――）」』など――も同様に扱う。つまり、テン「、」まる「。」や閉じる符号は、行頭には据えないということである。その他、行頭に据えないものとして、くりかえし記号（々ゝ）などがある。「！？」は、行頭に書いて差しつかえない。ただ、「！？」の下は、すぐ下にカギの受けがくるとき以外は、一マスあけることになっている。句読点の下を一マスあけた原稿をよくみかけるが、これはあけない。
@@ -211,8 +244,12 @@ $text = <<'EOF';
 
 １２３４５６７、，。．」’』”〟）】〉》］〕｝々ゝゞヽヾ〃
 
+
 １２aiueo３４、
 １２ｱｲｳｴｵ３４，
+
+
+
 EOF
 
 $expected = <<'EOF';
@@ -289,13 +326,19 @@ $expected = <<'EOF';
 
 １２３４５６７、，。．」’』”〟）】〉》］〕｝々ゝゞヽヾ〃
 
+
 １２aiueo３４、
 １２ｱｲｳｴｵ３４，
+
+
+
 EOF
 
-my $obj6 = Lingua::JA::Fold->new($text);
-$obj6->fold_ex(7);
-$got = $obj6->output;
+$got = fold(
+	'text' => $text,
+	'length' => 7,
+	'mode' => 'traditional',
+);
 
 is ($got, $expected,
-	'method fold_ex($i)');
+	'fold(): full-width; with traditional manner');
