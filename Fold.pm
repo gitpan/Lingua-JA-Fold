@@ -1,6 +1,6 @@
 package Lingua::JA::Fold;
 
-our $VERSION = '0.00_02'; # 2003-03-28
+our $VERSION = '0.00_03'; # 2003-03-28
 
 use 5.008;
 use strict;
@@ -24,14 +24,14 @@ sub output {
 	return $string;
 }
 
-sub fold_full {
+sub fold {
 	my($self, $length) = @_;
 	foreach my $line ( @{ $$self{'line'} } ) {
 		my @folded;
 		while ($line) {
-			if (length_full($line) > $length) {
+			if (_length_full($line) > $length) {
 				my $newfold;
-				($newfold, $line) = _cut_full($length, $line);
+				($newfold, $line) = _cut($length, $line);
 				push(@folded, $newfold);
 			}
 			else {
@@ -43,11 +43,11 @@ sub fold_full {
 	}
 	return $self;
 }
-sub _cut_full {
+sub _cut {
 	my($length, $string) = @_;
 	my $chars = $length;
 	my $folded = substr($string, 0, $chars);
-	my $shortage = $length - length_full($folded);
+	my $shortage = $length - _length_full($folded);
 	while ($shortage != 0) {
 		if ($shortage < 0) {
 			$chars -= 1;
@@ -57,7 +57,7 @@ sub _cut_full {
 		else {
 			$chars += int($shortage + 0.5);
 			$folded = substr($string, 0, $chars);
-			$shortage = $length - length_full($folded);
+			$shortage = $length - _length_full($folded);
 			next;
 		}
 	}
@@ -92,7 +92,7 @@ sub _cut_mixed {
 }
 
 ########################################################################
-sub length_half {
+sub _length_half {
 my ($string) = shift;
 	$string =~ s/[\x00-\x1F\x7F]//g; # remove all ASCII controls except for [SPACE]
 	my $letters = length($string);
@@ -103,7 +103,7 @@ my ($string) = shift;
 	return $letters * 2 - ($ascii + $kana);
 }
 
-sub length_full {
+sub _length_full {
 my ($string) = shift;
 	$string =~ s/[\x00-\x1F\x7F]//g; # remove all ASCII controls except for [SPACE]
 	my $letters = length($string);
@@ -114,7 +114,7 @@ my ($string) = shift;
 	return $letters - 0.5 * ($ascii + $kana);
 }
 
-# sub length_full_fixed {}
+# sub _length_full_fixed {}
 
 ########################################################################
 sub tab2space { # replace all [TAB]s with some [SPACE]s.
@@ -157,7 +157,7 @@ Lingua::JA::Fold - fold Japanese text
  $obj->kana_half2full;
  
  # fold the text under 2 full pitch letters par a line.
- $obj->fold_full(2);
+ $obj->fold(2);
  
  # result
  print encode('utf8', $obj->output);
@@ -182,7 +182,7 @@ This is the constructor method of the module.
 
 Output the string.
 
-=item fold_full($i)
+=item fold($i)
 
 Fold the string within the specified length of $i in full pitch.
 

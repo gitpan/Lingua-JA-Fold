@@ -13,7 +13,7 @@ use Encode;
 
 BEGIN { use_ok('Lingua::JA::Fold') };
 
-my $text = decode('utf8', 'ｱｲｳｴｵ	漢字');
+my $text = decode('utf8', 'かんじ	漢字');
 my $obj = Lingua::JA::Fold->new($text);
 isa_ok($obj, 'Lingua::JA::Fold');
 ########################################################################
@@ -21,46 +21,48 @@ isa_ok($obj, 'Lingua::JA::Fold');
 $obj->tab2space(4);
 my $got = $obj->output;
 $got = encode('utf8', $got);
-my $expected = 'ｱｲｳｴｵ    漢字';
+my $expected = 'かんじ    漢字';
 is ($got, $expected,
 	'[TAB] -> [SPACE] convert');
 ########################################################################
 # convert half pitch 'Kana' letters to full pitch ones.
+$text = decode('utf8', 'ｱｲｳｴｵ');
 my $obj2 = Lingua::JA::Fold->new($text);
 $obj2->kana_half2full;
 $got = $obj2->output;
 $got = encode('utf8', $got);
-$expected = 'アイウエオ	漢字';
+$expected = 'アイウエオ';
 is ($got, $expected,
 	'from half-pitch to full-pitch \'Kana\' convert');
 ########################################################################
 # fold the text under 2 full pitch letters par a line.
+$text = decode('utf8', 'abcdeかんじ漢字');
 my $obj3 = Lingua::JA::Fold->new($text);
-$obj3->fold_full(2);
+$obj3->fold(2);
 $got = $obj3->output;
 $got = encode('utf8', $got);
-$expected = 'ｱｲｳｴ
-ｵ	漢
-字';
+$expected = 'abcd
+eか
+んじ
+漢字';
 is ($got, $expected,
 	'folding: a short text');
 ########################################################################
 # long text trial
-$text = decode('utf8', 'ｱｲｳｴｵapougaobuaEmailアドレスも必須です（こちらから返事をする際に必要となりますので、アドレスの記入ミスをなさらぬようご注意下さい）。改行は、原則として段落を変えたい時のみ使用するgaoubaようにしてください。
+$text = decode('utf8', 'apougaobuaEmailアドレスも必須です（こちらから返事をする際に必要となりますので、アドレスの記入ミスをなさらぬようご注意下さい）。改行は、原則として段落を変えたい時のみ使用するgaoubaようにしてください。
 aaaa手a動で行を折り返して長さを揃える必要はありません。 作成中に誤って消してしまった場合はショックが大きいものです。特に長文の場合などは、一旦、テキストエディタやワープロ等で原稿を作成してから、それをメールの書き込み欄にコピー＆ペーストして送信するやり方にすれば安aaa全です。
  Emailアドレスも必須です（こちらから返事をoubabaする際に必要となりますので、アドレスの記入ミスをなさらぬようご注意下さい）。改行は、原則として段落を変えたい時のみ使用するようにしてください。aaaa手a動で行を折り返して長さを揃える必要はありません。作成中に誤って消してしまった場合はショックが大きいもagaのです。
 特にagabb長文の場合などは、一旦、テキストエディタやワープロ等で原稿を作成してから、それをメールの書き込み欄にコピー＆ペーストして送信するやり方にすれば安全です。Emailアドレスも必須です（こちらから返事をする際に必要となりますので、アドレスの記入ミスをなさらぬようご注意下さい）。 改行は、原則として段落を変えたい時のみ使用するようにしてください。aaaa手a動で行を折り返して長さを揃える必要はありません。 
 作成中に誤って消してしまった場合はショックが大きいものです。特に長文の場合などは、一旦、テキストエディタやワープロ等で原稿を作成してから、それをメールの書き込み欄にコピー＆ペーストして送信するやり方にすれば安全です。');
 my $obj4 = Lingua::JA::Fold->new($text);
-$obj4->fold_full(20);
+$obj4->fold(20);
 $got = $obj4->output;
 $got = encode('utf8', $got);
-$expected = 'ｱｲｳｴｵapougaobuaEmailアドレスも必須です（
-こちらから返事をする際に必要となりますの
-で、アドレスの記入ミスをなさらぬようご注
-意下さい）。改行は、原則として段落を変え
-たい時のみ使用するgaoubaようにしてくださ
-い。
+$expected = 'apougaobuaEmailアドレスも必須です（こち
+らから返事をする際に必要となりますので、
+アドレスの記入ミスをなさらぬようご注意下
+さい）。改行は、原則として段落を変えたい
+時のみ使用するgaoubaようにしてください。
 aaaa手a動で行を折り返して長さを揃える必
 要はありません。 作成中に誤って消してし
 まった場合はショックが大きいものです。特
@@ -101,12 +103,12 @@ my $obj5 = Lingua::JA::Fold->new($text);
 $obj5->fold_mixed(20);
 $got = $obj5->output;
 $got = encode('utf8', $got);
-$expected = 'ｱｲｳｴｵapougaobuaEmail
-アドレスも必須です（こちらから返事をする
-際に必要となりますので、アドレスの記入ミ
-スをなさらぬようご注意下さい）。改行は、
-原則として段落を変えたい時のみ使用するg
-aoubaようにしてください。
+$expected = 'apougaobuaEmailアドレスも
+必須です（こちらから返事をする際に必要と
+なりますので、アドレスの記入ミスをなさら
+ぬようご注意下さい）。改行は、原則として
+段落を変えたい時のみ使用するgaouba
+ようにしてください。
 aaaa手a動で行を折り返して長さを揃え
 る必要はありません。 作成中に誤って消し
 てしまった場合はショックが大きいものです
