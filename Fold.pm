@@ -1,13 +1,19 @@
 package Lingua::JA::Fold;
 
-our $VERSION = '0.00_05'; # 2003-03-30
+our $VERSION = '0.01'; # 2003-04-02
 
 use 5.008;
 use strict;
 use warnings;
-use Carp;
+# use Carp;
 
 use Encode;
+
+require Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT_OK = qw(
+	length_full length_half
+);
 
 sub new {
 	my $class = shift;
@@ -27,9 +33,10 @@ sub output {
 sub fold {
 	my($self, $length) = @_;
 	foreach my $line ( @{ $$self{'line'} } ) {
+		$line = decode('utf8', $line);
 		my @folded;
 		while ($line) {
-			if (_length_full($line) > $length) {
+			if (length_full( encode('utf8', $line) ) > $length) {
 				my $newfold;
 				($newfold, $line) = _cut($length, $line);
 				push(@folded, $newfold);
@@ -42,6 +49,7 @@ sub fold {
 		if ($folded) {
 			$line = "$folded\n$line";
 		}
+		$line = encode('utf8', $line);
 	}
 	return $self;
 }
@@ -49,7 +57,7 @@ sub _cut {
 	my($length, $string) = @_;
 	my $chars = $length;
 	my $folded = substr($string, 0, $chars);
-	my $shortage = $length - _length_full($folded);
+	my $shortage = $length - length_full( encode('utf8', $folded) );
 	while ($shortage != 0) {
 		if ($shortage < 0) {
 			$chars -= 1;
@@ -59,7 +67,7 @@ sub _cut {
 		else {
 			$chars += int($shortage + 0.5);
 			$folded = substr($string, 0, $chars);
-			$shortage = $length - _length_full($folded);
+			$shortage = $length - length_full( encode('utf8', $folded) );
 			next;
 		}
 	}
@@ -70,6 +78,7 @@ sub _cut {
 sub fold_mixed {
 	my($self, $length) = @_;
 	foreach my $line ( @{ $$self{'line'} } ) {
+		$line = decode('utf8', $line);
 		my @folded;
 		while ($line) {
 			if (length($line) > $length) {
@@ -85,6 +94,7 @@ sub fold_mixed {
 		if ($folded) {
 			$line = "$folded\n$line";
 		}
+		$line = encode('utf8', $line);
 	}
 	return $self;
 }
@@ -96,26 +106,28 @@ sub _cut_mixed {
 }
 
 ########################################################################
-sub _length_half {
-my ($string) = shift;
-	$string =~ s/[\x00-\x1F\x7F]//g; # remove all ASCII controls except for [SPACE]
+sub length_half {
+	my  $string = shift;
+	$string =~ tr/\x00-\x1F\x7F//d; # remove all ASCII controls except for [SPACE]
+	my $ascii  = $string =~ tr/\x20-\x7E//d;
+	$string = decode('utf8', $string);
+	my $halfwidth = $string =~ tr/\x{FF61}-\x{FF9F}\x{FFE0}-\x{FFE5}//d;
 	my $letters = length($string);
-	my $half_kana = '｡｢｣､･ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝﾞﾟ';
-	$half_kana = decode('utf8', $half_kana);
-	my $kana  = $string =~ tr/$half_kana//d;
-	my $ascii = $string =~ tr/\x20-\x7E//;
-	return $letters * 2 - ($ascii + $kana);
+	return 2 * $letters + $ascii + $halfwidth;
 }
 
-sub _length_full {
-my ($string) = shift;
-	$string =~ s/[\x00-\x1F\x7F]//g; # remove all ASCII controls except for [SPACE]
+sub length_full {
+	my $string = shift;
+	# remove all ASCII controls except for [SPACE]
+	$string =~ tr/\x00-\x1F\x7F//d;
+	# ascii: arabic numbers, alphabets, marks
+	my $ascii  = $string =~ tr/\x20-\x7E//d;
+	$string = decode('utf8', $string);
+	# half-width characters in the Unicode compatibility area
+	my $halfwidth = $string =~ tr/\x{FF61}-\x{FF9F}\x{FFE0}-\x{FFE5}//d;
+	# full-width characters
 	my $letters = length($string);
-	my $half_kana = '｡｢｣､･ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝﾞﾟ';
-	$half_kana = decode('utf8', $half_kana);
-	my $kana  = $string =~ tr/$half_kana//d;
-	my $ascii = $string =~ tr/\x20-\x7E//;
-	return $letters - 0.5 * ($ascii + $kana);
+	return $letters + 0.5 * ($ascii + $halfwidth);
 }
 
 # sub _length_full_fixed {}
@@ -134,8 +146,8 @@ sub tab2space { # replace all [TAB]s with some [SPACE]s.
 sub kana_half2full {
 	my $self = shift;
 	foreach my $line ( @{ $$self{'line'} } ) {
-		$line = encode('iso-2022-jp', $line);
-		$line = decode('iso-2022-jp', $line);
+		$line = encode( 'iso-2022-jp', decode('utf8', $line) );
+		$line = encode( 'utf8', decode('iso-2022-jp', $line) );
 	}
 	return $self;
 }
@@ -150,29 +162,28 @@ Lingua::JA::Fold - fold Japanese text
 =head1 SYNOPSIS
 
  use Lingua::JA::Fold;
- use Encode;
  
- my $text = decode('utf8', 'ｱｲｳｴｵ	漢字');
+ my $text = 'ｱｲｳｴｵ	漢字';
  my $obj = Lingua::JA::Fold->new($text);
  
  # replace a [TAB] with 4 of [SPACE]s.
  $obj->tab2space(4);
- # convert half pitch 'Kana' letters to full pitch ones.
+ # convert half-width 'Kana' characters to full-width ones.
  $obj->kana_half2full;
  
- # fold the text under 2 full pitch letters par a line.
+ # fold the text under 2 full-width characters par a line.
  $obj->fold(2);
  
  # result
- print encode('utf8', $obj->output);
+ print $obj->output;
 
 =head1 DESCRIPTION
 
 This module is used for Japanese text wrapping and so on.
 
-Japanese (Chinese and Korean would be the same) text has traditionally unique manner in printing. Basically it is used to be printed in monospace. Its width and height are about the same size. It is different from the alphabet letters which have variable width. Roughly say, we call the pitch of alphabet letters and Arabic numbers as 'half', and do the pitch of other letters as 'full'. In a Japanese text which is mixed with alphabet and Arabic numbers, a letter's width is 'full' or 'half'.
+Japanese (Chinese and Korean would be the same) text has traditionally unique manner in printing. Basically those characters are used to be printed in the two size of 'full-width' or 'half-width'. The full-width characters' width and height are about the same size (regular square). At this point, it is different from the alphabet characters which have normally variable width in printing. Roughly say, we call the width of alphabet letters and Arabic numbers as half, and do the width of other characters as full. In a Japanese text which is mixed with alphabet and Arabic numbers, a character's width is full or half.
 
-Thus manner makes text wrapping rather complicate thing.
+Thus manner seems to make text wrapping rather complicate thing.
 
 =head1 METHODS
 
@@ -180,23 +191,31 @@ Thus manner makes text wrapping rather complicate thing.
 
 =item new($string)
 
-This is the constructor method of the module.
+This is the class constructor method of the module.
 
 =item output
 
-Output the string.
+This method outputs the string.
 
 =item fold($i)
 
-Fold the string within the specified length of $i in full pitch.
+This method folds the string within the specified length of $i in full-width.
 
 =item tab2space($i)
 
-Replace [TAB] with some [SPACE]s of $i in the string.
+This method replaces [TAB] with some [SPACE]s of $i in the string.
 
 =item kana_half2full
 
-Converts from half pitch 'Kana's to full pitch ones in the string.
+This method converts from half-width 'Kana's to full-width ones in the string.
+
+=item length_full($text)
+
+This method is for counting length of the $text in full-width. 
+
+=item length_half($text)
+
+This method is for counting length of the $text in half-width. 
 
 =back
 
@@ -210,7 +229,15 @@ Converts from half pitch 'Kana's to full pitch ones in the string.
 
 =head1 NOTES
 
-This module runs under Unicode/UTF-8 environment (hence Perl5.8 or later is required), you should input data in UTF-8 character encoding.
+This module runs under Unicode/UTF-8 environment (hence Perl5.8 or later is required), you should input octets with UTF-8 charset (still do not turn utf8 flag on).
+
+=head1 TO DO
+
+=over
+
+=item Support to reflect rule of the forbidden marks.
+
+=back
 
 =head1 AUTHOR
 

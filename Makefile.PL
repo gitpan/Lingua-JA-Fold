@@ -6,7 +6,7 @@ WriteMakefile(
 	'NAME'         => 'Lingua::JA::Fold',
 	'VERSION_FROM' => 'Fold.pm',
 	'PREREQ_PM'    => {
-		'Encode'       => '1.83',
+		'Encode'       => '1.92',
 	},
 	($] >= 5.005 ? (
 		'ABSTRACT' => 'fold Japanese text',
