@@ -9,7 +9,8 @@ use warnings;
 
 use Test::More tests => 9;
 
-use Encode;
+use utf8;
+# use Encode;
 
 BEGIN {
 	use_ok( 'Lingua::JA::Fold', qw(length_full length_half) )

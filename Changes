@@ -1,7 +1,11 @@
 Revision history for Perl extension Lingua::JA::Fold.
 
+0.02  2003-04-03 01:57:32 JST
+	- The manner about handling for UTF-8 has changed.
+	- Users encouraged to `use utf8;' pragma in their source code.
+
 0.01  2003-04-02
-	- the first release
+	- the first public release
 
 0.00  2003-03-26
 	- original version

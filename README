@@ -1,4 +1,4 @@
-Lingua/JA/Fold version 0.01
+Lingua/JA/Fold version 0.02
 ===========================
 
  This module is used for Japanese text wrapping and so on.
@@ -15,8 +15,8 @@ INSTALLATION
 DEPENDENCIES
 
  This module requires perl5.8 or later.
-
- This module requires these other modules and libraries:
+ And,
+ this module requires these other modules and libraries:
 
    Encode
 

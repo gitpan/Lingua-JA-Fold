@@ -1,6 +1,6 @@
 package Lingua::JA::Fold;
 
-our $VERSION = '0.01'; # 2003-04-02
+our $VERSION = '0.02'; # 2003-04-03
 
 use 5.008;
 use strict;
@@ -33,10 +33,10 @@ sub output {
 sub fold {
 	my($self, $length) = @_;
 	foreach my $line ( @{ $$self{'line'} } ) {
-		$line = decode('utf8', $line);
+#		$line = decode('utf8', $line);
 		my @folded;
 		while ($line) {
-			if (length_full( encode('utf8', $line) ) > $length) {
+			if (length_full($line) > $length) {
 				my $newfold;
 				($newfold, $line) = _cut($length, $line);
 				push(@folded, $newfold);
@@ -49,7 +49,7 @@ sub fold {
 		if ($folded) {
 			$line = "$folded\n$line";
 		}
-		$line = encode('utf8', $line);
+#		$line = encode('utf8', $line);
 	}
 	return $self;
 }
@@ -57,7 +57,7 @@ sub _cut {
 	my($length, $string) = @_;
 	my $chars = $length;
 	my $folded = substr($string, 0, $chars);
-	my $shortage = $length - length_full( encode('utf8', $folded) );
+	my $shortage = $length - length_full($folded);
 	while ($shortage != 0) {
 		if ($shortage < 0) {
 			$chars -= 1;
@@ -67,7 +67,7 @@ sub _cut {
 		else {
 			$chars += int($shortage + 0.5);
 			$folded = substr($string, 0, $chars);
-			$shortage = $length - length_full( encode('utf8', $folded) );
+			$shortage = $length - length_full($folded);
 			next;
 		}
 	}
@@ -78,7 +78,7 @@ sub _cut {
 sub fold_mixed {
 	my($self, $length) = @_;
 	foreach my $line ( @{ $$self{'line'} } ) {
-		$line = decode('utf8', $line);
+#		$line = decode('utf8', $line);
 		my @folded;
 		while ($line) {
 			if (length($line) > $length) {
@@ -94,7 +94,7 @@ sub fold_mixed {
 		if ($folded) {
 			$line = "$folded\n$line";
 		}
-		$line = encode('utf8', $line);
+#		$line = encode('utf8', $line);
 	}
 	return $self;
 }
@@ -110,7 +110,7 @@ sub length_half {
 	my  $string = shift;
 	$string =~ tr/\x00-\x1F\x7F//d; # remove all ASCII controls except for [SPACE]
 	my $ascii  = $string =~ tr/\x20-\x7E//d;
-	$string = decode('utf8', $string);
+#	$string = decode('utf8', $string);
 	my $halfwidth = $string =~ tr/\x{FF61}-\x{FF9F}\x{FFE0}-\x{FFE5}//d;
 	my $letters = length($string);
 	return 2 * $letters + $ascii + $halfwidth;
@@ -122,7 +122,7 @@ sub length_full {
 	$string =~ tr/\x00-\x1F\x7F//d;
 	# ascii: arabic numbers, alphabets, marks
 	my $ascii  = $string =~ tr/\x20-\x7E//d;
-	$string = decode('utf8', $string);
+#	$string = decode('utf8', $string);
 	# half-width characters in the Unicode compatibility area
 	my $halfwidth = $string =~ tr/\x{FF61}-\x{FF9F}\x{FFE0}-\x{FFE5}//d;
 	# full-width characters
@@ -146,8 +146,8 @@ sub tab2space { # replace all [TAB]s with some [SPACE]s.
 sub kana_half2full {
 	my $self = shift;
 	foreach my $line ( @{ $$self{'line'} } ) {
-		$line = encode( 'iso-2022-jp', decode('utf8', $line) );
-		$line = encode( 'utf8', decode('iso-2022-jp', $line) );
+		$line = encode('iso-2022-jp', $line);
+		$line = decode('iso-2022-jp', $line);
 	}
 	return $self;
 }
@@ -161,6 +161,7 @@ Lingua::JA::Fold - fold Japanese text
 
 =head1 SYNOPSIS
 
+ use utf8;
  use Lingua::JA::Fold;
  
  my $text = 'ｱｲｳｴｵ	漢字';
@@ -223,13 +224,15 @@ This method is for counting length of the $text in half-width.
 
 =over
 
-=item Perl Module: L<Encode>
+=item module: L<utf8>
+
+=item module: L<Encode>
 
 =back
 
 =head1 NOTES
 
-This module runs under Unicode/UTF-8 environment (hence Perl5.8 or later is required), you should input octets with UTF-8 charset (still do not turn utf8 flag on).
+This module runs under Unicode/UTF-8 environment (hence Perl5.8 or later is required), you should input octets with UTF-8 charset. Please C<use utf8;> pragma to enable to detect strings as UTF-8 in your source code.
 
 =head1 TO DO
 
