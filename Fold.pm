@@ -5,10 +5,9 @@ use strict;
 use warnings;
 # use Carp;
 
-our $VERSION = '0.03'; # 2003-04-13 (since 2003-03-26)
+our $VERSION = '0.04_01'; # 2003-04-14 (since 2003-03-26)
 
 use utf8;
-
 use Encode;
 
 require Exporter;
@@ -137,13 +136,15 @@ The forbidden rule is: 1) the termination marks like Ten "," and Maru ".", 2) cl
 
 Actually by this module what is detect as a forbidden mark are listed next:
 
- 、，。．」’』”〟）】〉》］〕｝々ゝゞヽヾ〃
+ ’”、。〃々〉》」』】〕〟ゝゞヽヾ），．］｝
 
 Note that these marks are all full-width Japanese characters.
 
 =cut
 
-my $Forbidden = '、，。．」’』”〟）】〉》］〕｝々ゝゞヽヾ〃';
+my $Forbidden = '’”、。〃々〉》」』】〕〟ゝゞヽヾ），．］｝';
+utf8::upgrade($Forbidden);
+# my $Forbidden = '\x{2019}\x{201D}\x{3001}-\x{3003}\x{3005}\x{3009}\x{300B}\x{300D}\x{300F}\x{3011}\x{3015}\x{301F}\x{309D}\x{309E}\x{30FD}\x{30FE}\x{FF09}\x{FF0C}\x{FF0E}\x{FF3D}\x{FF5D}';
 
 sub fold_ex {
 	my($self, $length) = @_;

@@ -293,5 +293,6 @@ EOF
 my $obj6 = Lingua::JA::Fold->new($text);
 $obj6->fold_ex(7);
 $got = $obj6->output;
+
 is ($got, $expected,
 	'method fold_ex($i)');

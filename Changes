@@ -1,5 +1,7 @@
 Revision history for Perl extension Lingua::JA::Fold.
 
+0.04_01  2003-04-14 11:18:57 JST
+
 0.03  2003-04-13 19:27:33 JST
 	- New method fold_ex() has been implemented!
 	  With fold_ex(), you can reflect the 'forbidden marks rule'.
