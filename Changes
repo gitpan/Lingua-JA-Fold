@@ -1,5 +1,10 @@
 Revision history for Perl extension Lingua::JA::Fold.
 
+0.03  2003-04-13 19:27:33 JST
+	- New method fold_ex() has been implemented!
+	  With fold_ex(), you can reflect the 'forbidden marks rule'.
+	- A bug newline character at the last line is removed was fixed.
+
 0.02  2003-04-03 01:57:32 JST
 	- The manner about handling for UTF-8 has changed.
 	- Users encouraged to `use utf8;' pragma in their source code.
