@@ -1,6 +1,7 @@
 Revision history for Perl extension Lingua::JA::Fold.
 
-0.04_02  2003-04-14 17:18:24 JST
+0.04  2003-04-15 09:23:35 JST
+	- Added prototype to the functions.
 
 0.03  2003-04-13 19:27:33 JST
 	- New method fold_ex() has been implemented!

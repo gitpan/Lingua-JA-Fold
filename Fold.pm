@@ -5,7 +5,7 @@ use strict;
 use warnings;
 # use Carp;
 
-our $VERSION = '0.04_02'; # 2003-04-14 (since 2003-03-26)
+our $VERSION = '0.04'; # 2003-04-15 (since 2003-03-26)
 
 # use utf8;
 use Encode;
@@ -251,7 +251,7 @@ This exportable function is for counting length of the $text as half-width chara
 
 =cut
 
-sub length_half {
+sub length_half ($) {
 	my $string = shift;
 	
 	# remove all ASCII controls except for [SPACE]
@@ -273,7 +273,7 @@ This exportable function is for counting length of the $text as full-width chara
 
 =cut
 
-sub length_full {
+sub length_full ($) {
 	my $string = shift;
 	
 	# remove all ASCII controls except for [SPACE]
