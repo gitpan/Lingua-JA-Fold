@@ -1,5 +1,9 @@
 Revision history for Perl extension Lingua::JA::Fold.
 
+0.05  2004-01-01 18:09:09 JST
+	- A bug that empty lines had been ignored was fixed.
+	- An output string is now as Unicode Wide Character.
+
 0.04  2003-04-15 09:23:35 JST
 	- Added prototype to the functions.
 

@@ -6,11 +6,9 @@
 
 use strict;
 use warnings;
+use utf8;
 
 use Test::More tests => 10;
-
-use utf8;
-# use Encode;
 
 BEGIN {
 	use_ok( 'Lingua::JA::Fold', qw(length_full length_half) )
@@ -19,15 +17,17 @@ BEGIN {
 my $text = 'かんじ	漢字';
 my $obj = Lingua::JA::Fold->new($text);
 isa_ok($obj, 'Lingua::JA::Fold');
+
 ########################################################################
-# replace a [TAB] with 4 of [SPACE]s.
+# 3. replace a [TAB] with 4 of [SPACE]s.
 $obj->tab2space(4);
 my $got = $obj->output;
 my $expected = 'かんじ    漢字';
 is ($got, $expected,
 	'method tab2space($i)');
+
 ########################################################################
-# convert half width 'Kana' letters to full width ones.
+# 4. convert half width 'Kana' letters to full width ones.
 $text = 'ｱｲｳｴｵ';
 my $obj2 = Lingua::JA::Fold->new($text);
 $obj2->kana_half2full;
@@ -35,19 +35,22 @@ $got = $obj2->output;
 $expected = 'アイウエオ';
 is ($got, $expected,
 	'method kana_half2full');
+
 ########################################################################
-# count length in full-width
+# 5. count length in full-width
 $text = 'abcdeかんじ漢字ｱｲｳｴｵ｡';
 $got = length_full($text);
 is ($got, 10.5,
 	'func. length_full($text): for ascii + kanji + half_width_kana');
+
 ########################################################################
-# count length in half-width
+# 6. count length in half-width
 $got = length_half($text);
 is ($got, 21,
 	'func. length_half($text): for ascii + kanji + half_width_kana');
+
 ########################################################################
-# fold the text under 2 full width letters par a line.
+# 7. fold the text under 2 full width letters par a line.
 my $obj3 = Lingua::JA::Fold->new($text);
 $obj3->fold(2);
 $got = $obj3->output;
@@ -61,7 +64,7 @@ is ($got, $expected,
 	'method fold($i): for a short text');
 
 ########################################################################
-# long text trial
+# 8. long text trial
 
 $text = <<'EOF';
 apougaobuaEmailアドレスｱｲｳｴｵ｡も必須です（こちらから返事をする際に必要となりますので、アドレスの記入ミスをなさらぬようご注意下さい）。改行は、原則として段落を変えたい時のみ使用するgaoubaようにしてください。
@@ -122,7 +125,7 @@ is ($got, $expected,
 	'method fold($i): for a long text');
 
 ########################################################################
-# long text trial (alternative)
+# 9. long text trial (alternative)
 
 $expected = <<'EOF';
 apougaobuaEmailアドレスｱ
@@ -175,7 +178,7 @@ is ($got, $expected,
 	'method fold_easy(i): ignore difference whether full or half');
 
 ########################################################################
-# fold_ex($i) (reflect forbidden ruls)
+# 10. fold_ex($i) (reflect forbidden rules)
 
 $text = <<'EOF';
 (４)符号　記号ともいう。句読点をはじめ、表記上の符号には、すべて一マスをあてる。感嘆符！疑問符？カギ「」カッコ（）ヤマ型カッコ〈〉など。注意すべきことは、文の中止、あるいは終止が行末にきたときは、次の行頭に打たず、行末の文字と一緒に書きこむということである。閉じる符号――）」』など――も同様に扱う。つまり、テン「、」まる「。」や閉じる符号は、行頭には据えないということである。その他、行頭に据えないものとして、くりかえし記号（々ゝ）などがある。「！？」は、行頭に書いて差しつかえない。ただ、「！？」の下は、すぐ下にカギの受けがくるとき以外は、一マスあけることになっている。句読点の下を一マスあけた原稿をよくみかけるが、これはあけない。

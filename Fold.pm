@@ -3,12 +3,12 @@ package Lingua::JA::Fold;
 use 5.008;
 use strict;
 use warnings;
-# use Carp;
+use utf8;
 
-our $VERSION = '0.04'; # 2003-04-15 (since 2003-03-26)
+our $VERSION = '0.05'; # 2004-01-01 (since 2003-03-26)
 
-# use utf8;
 use Encode;
+# use Carp;
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -43,9 +43,9 @@ Lingua::JA::Fold - fold Japanese text, and more...
 
 This module is used for Japanese text wrapping and so on.
 
-The Japanese (the Chinese and the Korean would be the same) text has traditionally unique manner in representing. Basically those characters are used to be printed in two size of 'full-width' or 'half-width'. The width of full-width characters and the height of those are about the same size (regular square). At this point, it is different from the alphabet characters which have normally variable (slim) width in representing. Roughly say, we call the width of alphabet characters and Arabic numbers as half, and do the width of other characters as full. In a Japanese text which is mixed with alphabet and Arabic numbers, a character has a width, it would be full or half.
+The Japanese (the Chinese and the Korean would be the same) text has traditionally unique manner in representing. Basically those characters are used to be represented in two kind of size which is 'full-width' or 'half-width'. The width and the height of full-width characters are the same size (regular square). At the point, it is different from the alphabet characters which have normally variable (slim) width in representing. Roughly say, we call the width of alphabet characters and Arabic numbers as a half, and do the width of other characters as a full. In a Japanese text which is mixed with alphabet and Arabic numbers, a character has a width, it would be full or half.
 
-Thus manner seems to make text wrapping rather complicate thing.
+For such reasons, to wrapping Japanese text is rather complicate thing.
 
 =head1 METHODS and FUNCTIONS
 
@@ -53,7 +53,7 @@ Thus manner seems to make text wrapping rather complicate thing.
 
 =item new($string)
 
-This is the constructor class method of the module.
+The constructor class method.
 
 =cut
 
@@ -61,20 +61,32 @@ sub new {
 	my $class = shift;
 	my $self = {};
 	bless $self, $class;
-	my $string = shift;
-	@{ $$self{'line'} } = split(/(\n)/, $string);
+	utf8::decode( my $string = shift );
+	
+	$string =~ s/\x0D\x0A|\x0D|\x0A/\n/g;
+	if ($string =~ m/\n/) {
+		while ($string) {
+			$string =~ s/^(.*?\n)(.*)$/$2/s;
+			my $line = $1;
+			push @{ $$self{'line'} }, $line;
+		}
+	}
+	else {
+		push @{ $$self{'line'} }, $string;
+	}
+	
 	return $self;
 }
 
 =item output
 
-This class method outputs the string.
+This class method outputs the string (as Unicode Wide Character).
 
 =cut
 
 sub output {
 	my $self = shift;
-	my $string = join( '', @{ $$self{'line'} } );
+	my $string = join '', @{ $$self{'line'} };
 	return $string;
 }
 
@@ -142,8 +154,8 @@ Note that these marks are all full-width Japanese characters.
 
 =cut
 
-# my $Forbidden = '’”、。〃々〉》」』】〕〟ゝゞヽヾ），．］｝';
-my $Forbidden = '\x{2019}\x{201D}\x{3001}-\x{3003}\x{3005}\x{3009}\x{300B}\x{300D}\x{300F}\x{3011}\x{3015}\x{301F}\x{309D}\x{309E}\x{30FD}\x{30FE}\x{FF09}\x{FF0C}\x{FF0E}\x{FF3D}\x{FF5D}';
+my $Forbidden = '’”、。〃々〉》」』】〕〟ゝゞヽヾ），．］｝';
+# my $Forbidden = '\x{2019}\x{201D}\x{3001}-\x{3003}\x{3005}\x{3009}\x{300B}\x{300D}\x{300F}\x{3011}\x{3015}\x{301F}\x{309D}\x{309E}\x{30FD}\x{30FE}\x{FF09}\x{FF0C}\x{FF0E}\x{FF3D}\x{FF5D}';
 
 sub fold_ex {
 	my($self, $length) = @_;
@@ -160,10 +172,15 @@ sub fold_ex {
 				last;
 			}
 		}
-		my $folded = join("\n", @folded);
+		my $folded = join "\n", @folded;
 		if ($folded) {
 			if ($line) {
-				$line = "$folded\n$line";
+				if ($line eq "\n") {
+					$line = "$folded$line";
+				}
+				else {
+					$line = "$folded\n$line";
+				}
 			}
 			else {
 				$line = $folded;
@@ -344,11 +361,11 @@ This module runs under Unicode/UTF-8 environment (hence Perl5.8 or later is requ
 
 =head1 AUTHOR
 
-Masanori HATA E<lt>lovewing@geocities.co.jpE<gt> (Saitama, JAPAN)
+Masanori HATA E<lt>lovewing@dream.big.or.jpE<gt> (Saitama, JAPAN)
 
 =head1 COPYRIGHT
 
-Copyright (c) 2003 Masanori HATA. All rights reserved.
+Copyright (c) 2003-2004 Masanori HATA. All rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

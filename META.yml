@@ -1,0 +1,12 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Lingua-JA-Fold
+version:      0.05
+version_from: Fold.pm
+installdirs:  site
+requires:
+    Encode:                        1.98
+    Exporter:                      5.567
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.17
