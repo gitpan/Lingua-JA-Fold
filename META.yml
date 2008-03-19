@@ -1,13 +1,16 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Lingua-JA-Fold
-version:      0.07
-version_from: Fold.pm
-installdirs:  site
-requires:
+--- #YAML:1.0
+name:                Lingua-JA-Fold
+version:             0.08
+abstract:            To fold a Japanese text.
+license:             ~
+author:              
+    - Masanori HATA <http://www.mihr.net/>
+generated_by:        ExtUtils::MakeMaker version 6.42
+distribution_type:   module
+requires:     
     Carp:                          1.01
     Encode:                        1.98
     Exporter:                      5.567
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3

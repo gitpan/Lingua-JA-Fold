@@ -10,7 +10,7 @@ WriteMakefile(
 		'Carp'     => '1.01',
 	},
 	($] >= 5.005 ? (
-		'ABSTRACT' => 'fold a Japanese text.',
-		'AUTHOR'   => 'Masanori HATA <lovewing@dream.big.or.jp>',
+		'ABSTRACT' => 'To fold a Japanese text.',
+		'AUTHOR'   => 'Masanori HATA <http://www.mihr.net/>',
 	) : ()),
 );

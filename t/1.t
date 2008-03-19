@@ -8,10 +8,10 @@ use utf8;
 use Test::More tests => 13;
 
 BEGIN {
-	use_ok(
-		'Lingua::JA::Fold',
-		qw(fold length_full length_half tab2space kana_half2full)
-	)
+    use_ok(
+        'Lingua::JA::Fold',
+        qw(fold length_full length_half tab2space kana_half2full)
+    )
 };
 
 ########################################################################
@@ -22,7 +22,7 @@ my $got = tab2space('text' => $text, 'space' => 4);
 my $expected = 'かんじ    漢字';
 
 is ($got, $expected,
-	'tab2space()');
+    'tab2space()');
 
 ########################################################################
 # 3. convert a half-width 'Kana' letter to a full-width one.
@@ -32,7 +32,7 @@ $got = kana_half2full($text);
 $expected = 'アイウエオ';
 
 is ($got, $expected,
-	'kana_half2full()');
+    'kana_half2full()');
 
 ########################################################################
 # 4. count length for full-width
@@ -41,7 +41,7 @@ $text = 'abcdeかんじ漢字ｱｲｳｴｵ｡';
 $got = length_full($text);
 
 is ($got, 10.5,
-	'length_full(): for ascii + kanji + half_width_kana');
+    'length_full(): for ascii + kanji + half_width_kana');
 
 ########################################################################
 # 5. count length for half-width
@@ -49,7 +49,7 @@ is ($got, 10.5,
 $got = length_half($text);
 
 is ($got, 21,
-	'length_half(): for ascii + kanji + half_width_kana');
+    'length_half(): for ascii + kanji + half_width_kana');
 
 ########################################################################
 # 6. fold() (line-split: single line; end with newline)
@@ -64,13 +64,13 @@ $expected = <<'EOF';
 EOF
 
 $got = fold(
-	'text' => $text,
-	'length' => 5,
-	'mode' => 'traditional',
+    'text' => $text,
+    'length' => 5,
+    'mode' => 'traditional',
 );
 
 is ($got, $expected,
-	'fold(): line-split: single line; end with newline');
+    'fold(): line-split: single line; end with newline');
 
 ########################################################################
 # 7. fold() (line-split: single line; end without newline)
@@ -85,13 +85,13 @@ chomp($expected = <<'EOF');
 EOF
 
 $got = fold(
-	'text' => $text,
-	'length' => 5,
-	'mode' => 'traditional',
+    'text' => $text,
+    'length' => 5,
+    'mode' => 'traditional',
 );
 
 is ($got, $expected,
-	'fold(): line-split: single line; end without newline');
+    'fold(): line-split: single line; end without newline');
 
 ########################################################################
 # 8. fold() (line-split: multi line; end with newline)
@@ -112,13 +112,13 @@ $expected = <<'EOF';
 EOF
 
 $got = fold(
-	'text' => $text,
-	'length' => 5,
-	'mode' => 'traditional',
+    'text' => $text,
+    'length' => 5,
+    'mode' => 'traditional',
 );
 
 is ($got, $expected,
-	'fold(): line-split: multi line; end with newline');
+    'fold(): line-split: multi line; end with newline');
 
 
 ########################################################################
@@ -140,13 +140,13 @@ chomp($expected = <<'EOF');
 EOF
 
 $got = fold(
-	'text' => $text,
-	'length' => 5,
-	'mode' => 'traditional',
+    'text' => $text,
+    'length' => 5,
+    'mode' => 'traditional',
 );
 
 is ($got, $expected,
-	'fold(): line-split: multi line; end without newline');
+    'fold(): line-split: multi line; end without newline');
 
 ########################################################################
 # 10. fold a text under 2 full width letters par a line. (full-width)
@@ -154,9 +154,9 @@ is ($got, $expected,
 $text = 'abcdeかんじ漢字ｱｲｳｴｵ｡';
 
 $got = fold(
-	'text' => $text,
-	'length' => 2,
-	'mode' => 'full-width',
+    'text' => $text,
+    'length' => 2,
+    'mode' => 'full-width',
 );
 
 $expected = 'abcd
@@ -167,7 +167,7 @@ eか
 ｵ｡';
 
 is ($got, $expected,
-	'fold(): full-width; for a short text');
+    'fold(): full-width; for a short text');
 
 ########################################################################
 # 11. long text trial (full-width)
@@ -237,13 +237,13 @@ a動で行を折り返して長さを揃える必要はあ
 EOF
 
 $got = fold(
-	'text' => $text,
-	'length' => 20,
-	'mode' => 'full-width',
+    'text' => $text,
+    'length' => 20,
+    'mode' => 'full-width',
 );
 
 is ($got, $expected,
-	'fold(): full-width; for a long  text');
+    'fold(): full-width; for a long  text');
 
 ########################################################################
 # 12. long text trial (ignore difference whether full or half)
@@ -299,12 +299,12 @@ aaa全です。
 EOF
 
 $got = fold(
-	'text' => $text,
-	'length' => 20,
+    'text' => $text,
+    'length' => 20,
 );
 
 is ($got, $expected,
-	'fold(): ignore difference whether full or half');
+    'fold(): ignore difference whether full or half');
 
 ########################################################################
 # 13. fold() (full-width; traditional manner)
@@ -345,6 +345,7 @@ $text = <<'EOF';
 １２ｱｲｳｴｵ３４，
 
 
+100000000000000
 
 EOF
 
@@ -427,14 +428,16 @@ $expected = <<'EOF';
 １２ｱｲｳｴｵ３４，
 
 
+10000000000000
+0
 
 EOF
 
 $got = fold(
-	'text' => $text,
-	'length' => 7,
-	'mode' => 'traditional',
+    'text' => $text,
+    'length' => 7,
+    'mode' => 'traditional',
 );
 
 is ($got, $expected,
-	'fold(): full-width; with traditional manner');
+    'fold(): full-width; with traditional manner');

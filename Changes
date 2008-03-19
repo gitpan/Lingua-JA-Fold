@@ -1,5 +1,11 @@
 Revision history for Perl extension Lingua::JA::Fold.
 
+0.08  2008-03-19 21:38:00 JST
+	- Mr. Watanabe a.k.a. 'heppoko-kyoro' has reported to me a bug.
+	  The bug can occur with traditional folding. When the last folded
+	  string has only a half-width '0', the letter will disappear.
+	  Thanks to kyoro, the bug has been fixed.
+
 0.07  2004-01-04 14:27:10 JST
 	- A serious bug had been found and has been fixed.
 	  That bug arose on the v0.05 bug-fixing for deletion of empty

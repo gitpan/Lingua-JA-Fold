@@ -1,7 +1,7 @@
-Lingua/JA/Fold version 0.07
+Lingua/JA/Fold version 0.08
 ===========================
 
- This module is used for Japanese text wrapping.
+ This module is used folding a Japanese text.
 
 INSTALLATION
 
@@ -24,7 +24,7 @@ DEPENDENCIES
 
 COPYRIGHT AND LICENCE
 
- Copyright (c) 2003-2004 Masanori HATA. All rights reserved.
+ Copyright ©2003-2008 Masanori HATA. All rights reserved.
 
  This library is free software; you can redistribute it and/or
  modify it under the same terms as Perl itself.
